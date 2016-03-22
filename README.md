@@ -56,6 +56,7 @@
                 //此列可排序
                 sortable: true,
             },
+            'update_time',
             {
                 header: '首图',
                 dataIndex: '',
@@ -246,7 +247,30 @@ __必须__。表格列的配置，为一个数组。数组中的每一项，决�
   ]
   ```
   其中，dataIndex对应的数据，决定了哪个单选框被选中。如果label和value一样的话，可以缩写成字符串，radio:[{label:'black', value:'black'}]，可以写成radio:['black']
-7. buttons, 数组。如果有这个配置，此列显示多按钮。 
+7. buttons, 数组。如果有这个配置，此列显示多按钮。 如：
+  ```
+  columns:[
+        {
+            header: '操作',
+            dataIndex: '',
+            buttons:[{
+                text: '隐藏',
+                type: 'danger',
+                className: 'btn-del',
+                visible:function(row)
+                {
+                    if(row.status != "0")
+                        return true;
+                    return false;
+                },
+                click: function(item, columnConfig){
+                    alert(item.comment_id);
+                }
+            }]
+        },
+        ...
+  ]
+  ```
 
 ![](http://s.wandougongzhu.cn/s/6e/render_c23c6e.png)
 
