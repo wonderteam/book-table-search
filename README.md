@@ -256,7 +256,7 @@ __必须__。表格列的配置，为一个数组。数组中的每一项，决�
             buttons:[{
                 text: '隐藏',
                 type: 'danger',
-                className: 'btn-del',
+                cls: 'btn-del',
                 visible:function(row)
                 {
                     if(row.status != "0")
