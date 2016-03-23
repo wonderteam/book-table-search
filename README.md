@@ -355,4 +355,3 @@ tableSearch组件支持一些事件，想监听这些事件，需要配置listen
   })
   ```
 tableSearch实例，其实就是一个Vue实例，如果想进一步了解怎么用，可以访问http://cn.vuejs.org
-## 最佳实践
