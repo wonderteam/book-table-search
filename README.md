@@ -1,4 +1,4 @@
-# TableSearch文档
+# TableSearch组件文档
 
 > 我们不需要高大全的功能，只要够用的、好用的功能。不求最多，但求最好。
 
@@ -101,11 +101,9 @@
                     //按钮类型(也就是按钮颜色)
                     type: 'info',
                     //点击按钮触发的操作
-                    click: function(item, columnConfig){
-                        var action = '/community/getPostDetail?post_id='+item.post_id;
-                        var host   = window.location.host;
-                        var url    = 'http://'+ host + action;
-                        location.href = url;
+                    click: function(rowData, columnConfig, evt){
+                        var action = '/community/getPostDetail?post_id='+rowData.post_id;
+                        location.href = action;
                     }
                 }]
             },
@@ -126,6 +124,15 @@
                 }
             }
         },
+        
+        //批量操作按钮
+        batOp:[{
+            text:'删除选中行',
+            type: 'danger',
+            click: function(rows){
+                alert('确认要删除这'+rows.length+'条记录?');
+            }
+        }],
         //组件支持的事件监听
         listeners:{
             //当某一个单元格被点击时，触发cellclick事件
@@ -135,15 +142,7 @@
                     this.refresh();
                 }
             }
-        },
-        //批量操作按钮
-        batOp:[{
-            text:'删除选中行',
-            type: 'danger',
-            click: function(rows){
-                alert('确认要删除这'+rows.length+'条记录?');
-            }
-        }]
+        }
     });
 });
   ```
@@ -247,7 +246,7 @@ __必须__。表格列的配置，为一个数组。数组中的每一项，决�
   ]
   ```
   其中，dataIndex对应的数据，决定了哪个单选框被选中。如果label和value一样的话，可以缩写成字符串，radio:[{label:'black', value:'black'}]，可以写成radio:['black']
-7. buttons, 数组。如果有这个配置，此列显示多按钮。 如：
+7. buttons, 数组。如果有这个配置，此列显示为按钮。 如：
   ```
   columns:[
         {
@@ -263,18 +262,83 @@ __必须__。表格列的配置，为一个数组。数组中的每一项，决�
                         return true;
                     return false;
                 },
-                click: function(item, columnConfig){
-                    alert(item.comment_id);
+                click: function(rowData, columnConfig){
+                    alert(rowData.comment_id);
                 }
             }]
         },
         ...
   ]
   ```
+ 按钮的参数有：
+ 
+ 1. text, 按钮上的文字；
+ 2. type, 按钮的类型，也是按钮的颜色，可取值的有default\primary\success\info\warning\danger\link，默认值为default
+   ![](https://s.wandougongzhu.cn/s/b6/button_e7e4b6.png)
+ 3. cls, 按钮上附加的样式。多个样式时，用空格隔开。如cls:'t-btn big-btn del-btn'
+ 4. visible, 决定按钮是否显示，默认为true，显示。有两种配置方式，如果为数组，比如visible:['type', 'big']，就检测此行的数据中，type值是不是'big'，是则显示，否则隐藏；如果为函数，就根据函数的返回值，决定是否显示，true为显示，否则隐藏。
+ 5. click，点击按钮时触发的函数。它有三个参数：
+    * rowData, 按钮所在行的原始数据
+    * columnConfig，按钮所在列的column配置
+    * evt, 点击事件对象
+8. width, 此列宽度。取值如'150px', '30%'
+9. style, 此列表头的css样式，如{background:'#eee'}
+10. cls, 此列附加的样式，多个样式时，用空格隔开。如cls:'hl strip-line'
 
+#### 简写
+如果配置项只有header和dataIndex，并且它们值相同，就可以直接一个header的值就行了。比如：
+```
+[{header:'name', dataIndex:'name'},{header:'性别', dataIndex:'sex'}]
+简写为
+['name',{header:'性别', dataIndex:'sex'}]
+```
+#### 到底显示什么内容
+是不是发现，一个单元格显示什么内容，有好几个变量都能决定(dataIndex\render\checkbox\radio\buttons),它们几个同时存在时，渲染谁呢？代码里它们是这样的：
+
+```
+buttons>checkbox>radio>render>dataIndex
+```
+所以，同时配置了buttons和checkbox，只会显示button，不会显示checkbox。
 ![](http://s.wandougongzhu.cn/s/6e/render_c23c6e.png)
 
 ### page
 初始显示的页号，默认为1.
+
+### searchFilter
+配置顶部的搜索表单。目前支持输入框和下拉框两种。如：
+```
+searchFilter: {
+    //显示为一个输入框
+    "post_id":{"label":"ID"}, 
+    "topic_id":{"label":"话题ID"}, 
+    //显示为一个下拉列表，默认选择default_value中指定项
+    "is_del":{
+        default_value: '-1',
+        label: '删除状态',
+        list: {
+            '-1': '全部',
+            '0': '正常',
+            '1': '已删除',
+        }
+    }
+}
+```
+目前每一个表单项都是以key-value形式配置的，其中key会用作表单项的name，value是个json，它的数据有：
+
+* label，此表单项显示的名字
+* list，json数据，如果有此字段，这个表单项显示为下拉框，其中下拉框的取值由list里的配置决定
+* default_value，如果是输入框，它就是输入框中默认显示的内容；如果是下拉框，它就决定了哪项被选中。
+
+### batOp
+批量操作配置。批量操作显示为左下角的批量操作按钮，它的配置项跟column中的buttons配置是一样的，唯一不同的是，click函数的传入参数：
+1. rowsData，数组，选中的所有行的数据；
+2. evt，点击事件对象
+
+### listeners
+tableSearch组件支持一些事件，想监听这些事件，需要配置listeners, demo请参考上面。它支持的事件有：
+* ready, tableSearch组件初化合完成之后触发，此时dom已经可用。注意，container是可用的，但表格中的数据可能是不可用的，因为它是以ajax方式请求的。
+* refresh，切换页面、搜索、或调用接口刷新表格时，都会触发这个事件。它有一个参数，就是新页面的数据
+* rowclick, 某一行被点击时触发。它有两个参数，一是rowData，此行的数据；二是evt，点击事件对象
+* cellclick，某一单元格被点击时触发。它有三个参数，一个rowData，此行的数据；二是columnConfig，此列的配置；三是evt，点击事件对象。
 
 
